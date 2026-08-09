@@ -1,0 +1,907 @@
+/* Screen Wrapper - Fullscreen Viewport */
+.mc-screen-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100vw;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  background: #111116;
+}
+
+/* Minecraft Pause Menu Top Bar */
+.mc-pause-menu-bar {
+  width: 100%;
+  max-width: 100%;
+  background: rgba(0, 0, 0, 0.92);
+  border: 3px solid #373737;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.8);
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  z-index: 10;
+}
+
+.mc-pause-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mc-title {
+  font-size: 13px;
+  color: #ffaa00;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.mc-progress-badge {
+  font-size: 13px;
+  color: #55ff55;
+  background: #111116;
+  padding: 2px 8px;
+  border: 1px solid #373737;
+  border-radius: 2px;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.mc-pause-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 520px;
+}
+
+.mc-search-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #000000;
+  border: 2px solid #555555;
+  padding: 4px 8px;
+  border-radius: 2px;
+  flex: 1;
+}
+
+.mc-search-input input {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-family: var(--mc-font);
+  font-size: 15px;
+  outline: none;
+  width: 100%;
+}
+
+.mc-select {
+  background: #000000;
+  border: 2px solid #555555;
+  color: #ffff55;
+  font-family: var(--mc-font);
+  font-size: 14px;
+  padding: 4px 6px;
+  outline: none;
+  cursor: pointer;
+}
+
+.mc-pause-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-upload-btn {
+  background: linear-gradient(180deg, #9b59b6 0%, #6c3483 100%) !important;
+  border-color: #d7bde2 #4a235a #4a235a #d7bde2 !important;
+}
+.ai-upload-btn:hover {
+  background: linear-gradient(180deg, #af7ac5 0%, #7d3c98 100%) !important;
+}
+
+/* ================= IN-GAME MINECRAFT ADVANCEMENT WINDOW (FULLSCREEN) ================= */
+
+.mc-advancement-gui-frame {
+  width: 100%;
+  max-width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  padding: 0 12px 12px 12px;
+}
+
+/* Top Tabs Strips (Clean Minecraft Tabs with Icon ONLY) */
+.mc-gui-tabs-strip {
+  display: flex;
+  gap: 4px;
+  padding-left: 20px;
+  z-index: 2;
+  position: relative;
+  top: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.mc-gui-tabs-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.mc-gui-tab {
+  width: 54px;
+  height: 44px;
+  min-width: 54px;
+  background: #c6c6c6;
+  border: 3px solid #000000;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.1s ease, background 0.1s ease;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 0 #ffffff;
+}
+
+.mc-gui-tab.tab-inactive {
+  background: #8b8b8b;
+  transform: translateY(4px);
+}
+
+.mc-gui-tab.tab-inactive:hover {
+  background: #a0a0a0;
+  transform: translateY(2px);
+}
+
+.mc-gui-tab.tab-active {
+  background: #ffffff;
+  transform: translateY(0px);
+  z-index: 3;
+  box-shadow: inset 0 3px 0 #ffffff;
+}
+
+.mc-tab-icon {
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Main White Window Container (Fills Available Height) */
+.mc-gui-window {
+  flex: 1;
+  background: #ffffff;
+  border: 4px solid #ffffff;
+  border-radius: 12px;
+  outline: 4px solid #000000;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.mc-gui-header {
+  padding: 4px 8px 10px 8px;
+}
+
+.mc-gui-title {
+  font-family: var(--mc-pixel-font);
+  font-size: 15px;
+  color: #373737;
+  letter-spacing: -0.5px;
+}
+
+.mc-search-banner {
+  background: #ffff55;
+  color: #000000;
+  font-family: var(--mc-pixel-font);
+  font-size: 10px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  border: 2px solid #000000;
+}
+
+/* Viewport with Background Parallax Panning (Fills Container Height) */
+.mc-gui-viewport {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: 4px solid #000000;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+  background-repeat: repeat;
+}
+
+.mc-gui-viewport.is-panning {
+  cursor: grabbing;
+}
+
+/* Blank Canvas Hero Welcome Card */
+.blank-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 20;
+}
+
+.blank-hero-card {
+  background: rgba(0, 0, 0, 0.9);
+  border: 4px solid #ffffff;
+  outline: 4px solid #000000;
+  padding: 32px 40px;
+  max-width: 680px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  border-radius: 8px;
+}
+
+.blank-hero-badge {
+  background: #252530;
+  border: 2px solid #55ff55;
+  padding: 12px;
+  border-radius: 50%;
+}
+
+.blank-hero-title {
+  font-size: 16px;
+  color: #ffff55;
+  text-shadow: 2px 2px 0 #000;
+  line-height: 1.4;
+}
+
+.blank-hero-sub {
+  font-size: 15px;
+  color: #dddddd;
+  line-height: 1.5;
+}
+
+.blank-hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 8px;
+}
+
+.hero-btn {
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  justify-content: center !important;
+  gap: 10px !important;
+}
+
+/* Minecraft Block Textures for Viewport */
+.bg-texture-stone {
+  background-color: #574c43;
+  background-image: 
+    linear-gradient(#3a322c 2px, transparent 2px),
+    linear-gradient(90deg, #3a322c 2px, transparent 2px),
+    radial-gradient(#6c6055 1.5px, transparent 1.5px);
+  background-size: 32px 32px, 32px 32px, 8px 8px;
+}
+
+.bg-texture-cobble {
+  background-color: #373737;
+  background-image: 
+    linear-gradient(#222 2px, transparent 2px),
+    linear-gradient(90deg, #222 2px, transparent 2px),
+    radial-gradient(#555 2px, transparent 2px);
+  background-size: 24px 24px, 24px 24px, 12px 12px;
+}
+
+.bg-texture-darkstone {
+  background-color: #1a1a24;
+  background-image: 
+    linear-gradient(#0c0c12 2px, transparent 2px),
+    linear-gradient(90deg, #0c0c12 2px, transparent 2px),
+    radial-gradient(#333348 1.5px, transparent 1.5px);
+  background-size: 32px 32px, 32px 32px, 16px 16px;
+}
+
+.bg-texture-coal {
+  background-color: #111111;
+  background-image: 
+    linear-gradient(#262626 2px, transparent 2px),
+    linear-gradient(90deg, #262626 2px, transparent 2px);
+  background-size: 20px 20px;
+}
+
+.bg-texture-amethyst {
+  background-color: #00d2d3;
+  background-image: 
+    linear-gradient(#00a8a9 2px, transparent 2px),
+    linear-gradient(90deg, #00a8a9 2px, transparent 2px),
+    radial-gradient(#ffffff 2px, transparent 2px);
+  background-size: 32px 32px, 32px 32px, 16px 16px;
+}
+
+.bg-texture-deepslate {
+  background-color: #24292e;
+  background-image: 
+    linear-gradient(#14171a 2px, transparent 2px),
+    linear-gradient(90deg, #14171a 2px, transparent 2px);
+  background-size: 28px 28px;
+}
+
+.bg-texture-bedrock {
+  background-color: #1a1a1a;
+  background-image: radial-gradient(#444 2px, transparent 2px);
+  background-size: 16px 16px;
+}
+
+.bg-texture-dragon {
+  background-color: #2b172a;
+  background-image: 
+    linear-gradient(#4a2148 2px, transparent 2px),
+    linear-gradient(90deg, #4a2148 2px, transparent 2px);
+  background-size: 32px 32px;
+}
+
+/* Floating Controls HUD */
+.mc-hud-controls {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid #ffffff;
+  outline: 2px solid #000000;
+  padding: 4px 8px;
+}
+
+.mc-hud-controls button {
+  background: #707070;
+  border: 2px solid;
+  border-color: #ffffff #373737 #373737 #ffffff;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.mc-hud-controls button:hover {
+  background: #8b8b8b;
+}
+
+.hud-pan-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #ffff55;
+  padding-left: 8px;
+  border-left: 1px solid #555555;
+}
+
+/* Canvas & SVG */
+.mc-gui-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4000px;
+  height: 3000px;
+}
+
+.mc-gui-lines-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mc-gui-nodes-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ================= IN-GAME ADVANCEMENT NODES ================= */
+
+.mc-node-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  z-index: 4;
+  opacity: 1 !important;
+}
+
+.mc-node-wrapper:hover {
+  z-index: 10;
+}
+
+.mc-node-box {
+  width: 48px;
+  height: 48px;
+  background: #ffffff;
+  border: 3px solid #000000;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 -3px 0 #8b8b8b, 0 4px 8px rgba(0,0,0,0.5);
+  transition: transform 0.1s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mc-node-wrapper:hover .mc-node-box {
+  transform: scale(1.08);
+}
+
+/* Goal frame styling */
+.node-goal .mc-node-box {
+  border-radius: 50%;
+  border: 3px solid #000000;
+  box-shadow: 0 0 0 3px #ffffff, inset 0 -3px 0 #c6c6c6;
+}
+
+/* Challenge frame styling */
+.node-challenge .mc-node-box {
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px #ffffff, 0 0 6px rgba(0,0,0,0.5);
+}
+
+/* Completion state: ONLY TURNS YELLOW UPON COMPLETION! */
+.state-completed .mc-node-box {
+  background: #ffff55 !important;
+  border-color: #000000 !important;
+  box-shadow: 0 0 0 3px #ffa800, inset 0 -3px 0 #ffaa00 !important;
+}
+
+.node-goal.state-completed .mc-node-box {
+  background: #ffff55 !important;
+  box-shadow: 0 0 0 3px #ffa800, inset 0 -3px 0 #ffaa00 !important;
+}
+
+.node-challenge.state-completed .mc-node-box {
+  background: linear-gradient(135deg, #ffff55 0%, #ffa800 100%) !important;
+  box-shadow: 0 0 0 3px #ff00ff, 0 0 12px #ffff55 !important;
+}
+
+/* ================= EXACT IN-GAME TOOLTIP (UNTOUCHED COLOURS) ================= */
+
+.mc-tooltip-popup {
+  position: absolute;
+  left: 54px;
+  top: -10px;
+  width: 270px;
+  background: rgba(16, 0, 32, 0.95);
+  border: 2px solid #28006e;
+  outline: 2px solid #5000ff;
+  border-radius: 4px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  transform: translateY(4px);
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9);
+}
+
+.mc-node-wrapper:hover .mc-tooltip-popup {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0px);
+}
+
+.mc-tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #3b177a;
+  padding-bottom: 4px;
+}
+
+.mc-tooltip-title {
+  color: #55ffff;
+  font-family: var(--mc-pixel-font);
+  font-size: 11px;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.mc-tooltip-frame {
+  color: #ff55ff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mc-tooltip-desc {
+  color: #ffff55;
+  font-size: 15px;
+  line-height: 1.3;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.mc-tooltip-guide-hint {
+  color: #ffffff;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.mc-tooltip-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-top: 4px;
+  border-top: 1px solid #3b177a;
+  padding-top: 4px;
+}
+
+.mc-tooltip-mod {
+  color: #ffaa00;
+}
+
+.mc-tooltip-status {
+  color: #55ff55;
+}
+
+.mc-tooltip-click-action {
+  font-size: 11px;
+  color: #aaaaaa;
+  text-align: center;
+}
+
+/* ================= MODAL & UPLOAD DIALOGUES ================= */
+
+.mc-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.mc-modal-content {
+  width: 100%;
+  max-width: 720px;
+  background: #ffffff;
+  border: 4px solid #ffffff;
+  outline: 4px solid #000000;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+}
+
+.upload-modal {
+  max-width: 680px;
+}
+
+.mc-modal-header {
+  background: #373737;
+  color: #ffffff;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 4px solid #000000;
+}
+
+.modal-title-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-title {
+  font-family: var(--mc-pixel-font);
+  font-size: 14px;
+  color: #ffff55;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.modal-tagline {
+  font-size: 13px;
+  color: #aaaaaa;
+}
+
+.close-btn {
+  padding: 4px 8px;
+}
+
+/* Input Mode Tabs */
+.input-mode-tabs {
+  display: flex;
+  background: #25252d;
+  border-bottom: 3px solid #000000;
+}
+
+.mode-tab-btn {
+  flex: 1;
+  background: #2b2b36;
+  border: none;
+  color: #888888;
+  padding: 10px 16px;
+  font-family: var(--mc-font);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mode-tab-btn:hover {
+  background: #383846;
+  color: #ffffff;
+}
+
+.mode-tab-btn.active {
+  background: #1e1e24;
+  color: #ffff55;
+  font-weight: 700;
+  box-shadow: inset 0 3px 0 #ffff55;
+}
+
+.mc-modal-body {
+  background: #1e1e24;
+  padding: 20px;
+  max-height: 65vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.btn-complete-toggle {
+  background: linear-gradient(180deg, #c0392b 0%, #922b21 100%) !important;
+  border-color: #e74c3c #641e16 #641e16 #e74c3c !important;
+}
+
+/* Upload Dropzone */
+.mc-dropzone {
+  border: 3px dashed #555555;
+  background: #111116;
+  padding: 24px;
+  border-radius: 6px;
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mc-dropzone:hover {
+  border-color: #ffff55;
+  background: #181822;
+}
+
+.dropzone-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.drop-title {
+  font-family: var(--mc-pixel-font);
+  font-size: 12px;
+  color: #ffffff;
+}
+
+.drop-sub {
+  font-size: 13px;
+  color: #888888;
+}
+
+.dropzone-file-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.screenshot-preview {
+  max-height: 180px;
+  max-width: 100%;
+  border: 2px solid #555555;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+.file-name-label {
+  display: block;
+  font-size: 12px;
+  color: #55ff55;
+  margin-top: 6px;
+}
+
+/* Text Input Mode */
+.text-mode-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mc-textarea-text {
+  background: #000000;
+  border: 2px solid #555555;
+  color: #ffffff;
+  font-family: monospace;
+  font-size: 14px;
+  padding: 10px;
+  outline: none;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.sample-presets {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.preset-label {
+  font-size: 12px;
+  color: #aaaaaa;
+}
+
+.preset-btn {
+  background: #2b2b3a;
+  border: 1px solid #555577;
+  color: #55ffff;
+  font-family: var(--mc-font);
+  font-size: 14px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.preset-btn:hover {
+  background: #3b3b4f;
+  color: #ffffff;
+}
+
+.error-banner {
+  background: #aa0000;
+  color: #fff;
+  padding: 8px 12px;
+  border: 2px solid #ff5555;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.ai-loading-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #111116;
+  border: 2px solid #55ff55;
+  padding: 12px;
+}
+
+.spinning-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+.loading-step-text {
+  font-family: var(--mc-pixel-font);
+  font-size: 11px;
+  color: #55ff55;
+}
+
+.mc-modal-footer {
+  background: #373737;
+  padding: 12px 16px;
+  border-top: 4px solid #000000;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.primary-action-btn {
+  background: linear-gradient(180deg, #27ae60 0%, #1e8449 100%) !important;
+  border-color: #2ecc71 #145a32 #145a32 #2ecc71 !important;
+}
+
+/* Toast Popup */
+.mc-toast-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 300;
+  background: rgba(16, 0, 32, 0.95);
+  border: 2px solid #28006e;
+  outline: 2px solid #5000ff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+  padding: 12px 16px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  max-width: 380px;
+}
+
+.mc-toast-popup.toast-locked {
+  border-color: #6e0000 !important;
+  outline-color: #ff0000 !important;
+}
+
+@keyframes toastIn {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.toast-icon-box {
+  font-size: 32px;
+}
+
+.toast-header-text {
+  font-family: var(--mc-pixel-font);
+  font-size: 10px;
+}
+
+.task-title { color: #55ff55; }
+.goal-title { color: #ffff55; }
+.challenge-title { color: #ff55ff; }
+
+.toast-adv-name {
+  font-family: var(--mc-pixel-font);
+  font-size: 12px;
+  color: #ffffff;
+  margin-top: 4px;
+}
+
+.toast-tagline {
+  font-size: 13px;
+  color: #aaaaaa;
+}

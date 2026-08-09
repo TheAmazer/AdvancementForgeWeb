@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+:root {
+  --mc-font: 'VT323', 'Press Start 2P', monospace;
+  --mc-pixel-font: 'Press Start 2P', monospace;
+  
+  --mc-gui-white: #ffffff;
+  --mc-gui-bg: #c6c6c6;
+  --mc-gui-dark: #373737;
+  --mc-border-dark: #000000;
+  
+  --mc-color-aqua: #55ffff;
+  --mc-color-gold: #ffff55;
+  --mc-color-green: #55ff55;
+  --mc-color-purple: #ff55ff;
+  --mc-color-white: #ffffff;
+  --mc-color-gray: #aaaaaa;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  font-family: var(--mc-font);
+  background-color: #121216;
+  /* Blurred Minecraft background effect */
+  background-image: 
+    radial-gradient(circle at center, rgba(18, 18, 22, 0.6) 0%, rgba(10, 10, 14, 0.95) 100%),
+    linear-gradient(45deg, #1f242d 25%, transparent 25%), 
+    linear-gradient(-45deg, #1f242d 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, #1f242d 75%), 
+    linear-gradient(-45deg, transparent 75%, #1f242d 75%);
+  background-size: 100% 100%, 32px 32px, 32px 32px, 32px 32px, 32px 32px;
+  background-position: 0 0, 0 0, 0 16px, 16px -16px, -16px 0px;
+  color: #ffffff;
+  min-height: 100vh;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom Minecraft scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+::-webkit-scrollbar-thumb {
+  background: #8b8b8b;
+  border: 2px solid;
+  border-color: #ffffff #373737 #373737 #ffffff;
+}
+
+.pixel-title {
+  font-family: var(--mc-pixel-font);
+  letter-spacing: 0px;
+}
+
+/* Minecraft Bevel Button */
+.mc-btn {
+  font-family: var(--mc-font);
+  font-size: 18px;
+  background: #707070;
+  border: 2px solid;
+  border-color: #ffffff #373737 #373737 #ffffff;
+  color: #ffffff;
+  padding: 6px 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-shadow: 2px 2px 0px #000000;
+  box-shadow: 0 4px 0 #000000;
+  outline: none;
+}
+
+.mc-btn:hover {
+  background: #8b8b8b;
+}
+
+.mc-btn:active {
+  border-color: #373737 #ffffff #ffffff #373737;
+  background: #555555;
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #000000;
+}
