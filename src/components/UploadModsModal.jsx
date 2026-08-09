@@ -83,7 +83,7 @@ export default function UploadModsModal({ onClose, onApplyGeneratedAdvancements 
         };
       }
 
-      setLoadingStep('Gemini AI is analyzing mods & constructing progression tree...');
+      setLoadingStep('Gemini Vision AI is analyzing mods & constructing progression tree...');
 
       const response = await fetch('/api/analyze-mods', {
         method: 'POST',
