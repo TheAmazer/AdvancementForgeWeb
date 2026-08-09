@@ -90,7 +90,12 @@ ${SCHEMA_PROMPT}
 
 app.post('/api/analyze-mods', upload.single('image'), async (req, res) => {
   try {
-    const userApiKey = req.headers['x-api-key'] || process.env.GEMINI_API_KEY;
+    const userApiKey = req.headers['x-api-key'] || 
+                       process.env.GEMINI_API_KEY || 
+                       process.env.VITE_GEMINI_API_KEY || 
+                       process.env.GOOGLE_API_KEY || 
+                       process.env.GEMINI_KEY;
+
     const file = req.file;
     const { imageBase64, mimeType, modListText } = req.body || {};
 
@@ -108,38 +113,62 @@ app.post('/api/analyze-mods', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'Please upload a screenshot image or paste a text list of mods.' });
     }
 
-    if (userApiKey) {
-      try {
-        const ai = new GoogleGenAI({ apiKey: userApiKey });
+    let geminiErrorMsg = null;
 
-        let response;
-        if (cleanBase64) {
-          response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [
-              VISION_PROMPT,
-              { inlineData: { data: cleanBase64, mimeType: cleanMime } }
-            ],
-            config: { responseMimeType: 'application/json' }
-          });
-        } else {
-          response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [TEXT_PROMPT_TEMPLATE(modListText)],
-            config: { responseMimeType: 'application/json' }
-          });
+    if (userApiKey && userApiKey.trim() !== '') {
+      try {
+        const ai = new GoogleGenAI({ apiKey: userApiKey.trim() });
+        const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+        let response = null;
+        let lastErr = null;
+
+        for (const modelName of modelsToTry) {
+          try {
+            if (cleanBase64) {
+              response = await ai.models.generateContent({
+                model: modelName,
+                contents: [
+                  VISION_PROMPT,
+                  { inlineData: { data: cleanBase64, mimeType: cleanMime } }
+                ],
+                config: { responseMimeType: 'application/json' }
+              });
+            } else {
+              response = await ai.models.generateContent({
+                model: modelName,
+                contents: [TEXT_PROMPT_TEMPLATE(modListText)],
+                config: { responseMimeType: 'application/json' }
+              });
+            }
+
+            if (response && response.text) break;
+          } catch (mErr) {
+            lastErr = mErr;
+            console.warn(`Model ${modelName} failed:`, mErr.message);
+          }
         }
 
-        const parsed = JSON.parse(response.text);
-        return res.json({ success: true, data: parsed });
+        if (response && response.text) {
+          const parsed = JSON.parse(response.text);
+          return res.json({ success: true, data: parsed });
+        } else if (lastErr) {
+          geminiErrorMsg = lastErr.message;
+        }
       } catch (geminiError) {
+        geminiErrorMsg = geminiError.message;
         console.warn('Gemini API call failed, using built-in fallback:', geminiError.message);
       }
+    } else {
+      geminiErrorMsg = "No GEMINI_API_KEY environment variable set on server";
     }
 
     // Fallback AI synthesis generator
     const fallbackData = generateFallbackAdvancements(modListText);
-    return res.json({ success: true, data: fallbackData, note: "Generated using built-in mod analyzer" });
+    return res.json({ 
+      success: true, 
+      data: fallbackData, 
+      note: `Fallback used (${geminiErrorMsg || 'API Key offline'})` 
+    });
 
   } catch (error) {
     console.error('API Error:', error);
