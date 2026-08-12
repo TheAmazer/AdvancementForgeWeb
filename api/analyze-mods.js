@@ -1,5 +1,3 @@
-import { GoogleGenAI } from '@google/genai';
-
 const SCHEMA_PROMPT = `
 Return ONLY a valid JSON object matching this exact schema:
 {
@@ -114,51 +112,51 @@ export default async function handler(req, res) {
     let geminiErrorMsg = null;
 
     if (userApiKey && userApiKey !== '') {
-      try {
-        const ai = new GoogleGenAI({ apiKey: userApiKey });
-        const modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
-        let response = null;
-        let lastErr = null;
+      const modelsToTry = ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+      const promptText = imageBase64 ? VISION_PROMPT : TEXT_PROMPT_TEMPLATE(modListText);
+      const cleanBase64 = imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, '').trim() : null;
 
-        for (const modelName of modelsToTry) {
-          try {
-            if (imageBase64) {
-              const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '').trim();
-              const cleanMime = mimeType || 'image/png';
-
-              response = await ai.models.generateContent({
-                model: modelName,
-                contents: [
-                  VISION_PROMPT,
-                  { inlineData: { data: cleanBase64, mimeType: cleanMime } }
-                ],
-                config: { responseMimeType: 'application/json' }
-              });
-            } else {
-              response = await ai.models.generateContent({
-                model: modelName,
-                contents: [TEXT_PROMPT_TEMPLATE(modListText)],
-                config: { responseMimeType: 'application/json' }
-              });
-            }
-
-            if (response && response.text) break;
-          } catch (mErr) {
-            lastErr = mErr;
-            console.warn(`Model ${modelName} failed:`, mErr.message);
+      for (const modelName of modelsToTry) {
+        try {
+          const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(userApiKey)}`;
+          
+          const parts = [{ text: promptText }];
+          if (cleanBase64) {
+            parts.push({
+              inline_data: {
+                mime_type: mimeType || 'image/png',
+                data: cleanBase64
+              }
+            });
           }
-        }
 
-        if (response && response.text) {
-          let rawText = response.text.replace(/```json/gi, '').replace(/```/g, '').trim();
-          const parsed = JSON.parse(rawText);
-          return res.status(200).json({ success: true, data: parsed, source: 'ai' });
-        } else if (lastErr) {
-          geminiErrorMsg = lastErr.message;
+          const geminiReqBody = {
+            contents: [{ parts }],
+            generationConfig: {
+              responseMimeType: "application/json"
+            }
+          };
+
+          const apiRes = await fetch(endpointUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(geminiReqBody)
+          });
+
+          const resData = await apiRes.json();
+
+          if (apiRes.ok && resData.candidates && resData.candidates[0]?.content?.parts[0]?.text) {
+            let jsonString = resData.candidates[0].content.parts[0].text;
+            jsonString = jsonString.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(jsonString);
+            return res.status(200).json({ success: true, data: parsed, source: 'ai' });
+          } else {
+            const errDetail = resData.error ? resData.error.message : `HTTP ${apiRes.status}`;
+            geminiErrorMsg = `[${modelName}] ${errDetail}`;
+          }
+        } catch (callErr) {
+          geminiErrorMsg = callErr.message;
         }
-      } catch (geminiError) {
-        geminiErrorMsg = geminiError.message;
-        console.warn('Gemini API call failed in Vercel function:', geminiError.message);
       }
     } else {
       geminiErrorMsg = "GEMINI_API_KEY not found in Vercel environment variables.";
