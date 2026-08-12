@@ -112,8 +112,15 @@ export default async function handler(req, res) {
     let geminiErrorMsg = null;
 
     if (userApiKey && userApiKey !== '') {
-      // Production stable Gemini 1.5 models
-      const modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro'];
+      // Model sequence including gemini-flash-latest as requested
+      const modelsToTry = [
+        'gemini-flash-latest',
+        'gemini-1.5-flash-latest',
+        'gemini-2.5-flash',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro-latest'
+      ];
+      
       const promptText = imageBase64 ? VISION_PROMPT : TEXT_PROMPT_TEMPLATE(modListText);
       const cleanBase64 = imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, '').trim() : null;
 
