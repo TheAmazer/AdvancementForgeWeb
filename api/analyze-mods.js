@@ -112,7 +112,8 @@ export default async function handler(req, res) {
     let geminiErrorMsg = null;
 
     if (userApiKey && userApiKey !== '') {
-      const modelsToTry = ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+      // Production stable Gemini 1.5 models
+      const modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro'];
       const promptText = imageBase64 ? VISION_PROMPT : TEXT_PROMPT_TEMPLATE(modListText);
       const cleanBase64 = imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, '').trim() : null;
 
@@ -123,8 +124,8 @@ export default async function handler(req, res) {
           const parts = [{ text: promptText }];
           if (cleanBase64) {
             parts.push({
-              inline_data: {
-                mime_type: mimeType || 'image/png',
+              inlineData: {
+                mimeType: mimeType || 'image/png',
                 data: cleanBase64
               }
             });
@@ -152,10 +153,14 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true, data: parsed, source: 'ai' });
           } else {
             const errDetail = resData.error ? resData.error.message : `HTTP ${apiRes.status}`;
-            geminiErrorMsg = `[${modelName}] ${errDetail}`;
+            if (!geminiErrorMsg) {
+              geminiErrorMsg = `[${modelName}] ${errDetail}`;
+            }
           }
         } catch (callErr) {
-          geminiErrorMsg = callErr.message;
+          if (!geminiErrorMsg) {
+            geminiErrorMsg = `[${modelName}] ${callErr.message}`;
+          }
         }
       }
     } else {
