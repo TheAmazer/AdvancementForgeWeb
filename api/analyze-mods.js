@@ -51,9 +51,10 @@ const VISION_PROMPT = `
 You are an expert Minecraft Modpack AI Architect.
 Analyze the provided screenshot of a Minecraft mods folder directory.
 Task:
-1. Identify all installed mods and their versions visible in the screenshot.
-2. Group the recognized gameplay/tech/magic/adventure mods into 3 to 8 logical progression tabs.
-3. For each tab, generate a detailed 5 to 10 step sequential tutorial advancement progression tree.
+1. Read all file names in the screenshot (e.g. appliedenergistics2, create, create_connected, createaddition, createdieselgenerators, createnuclear, createoreexcavation, industrialforegoing, sophisticatedbackpacks, sodium, jei, etc.).
+2. List ALL recognized mods.
+3. Group them into 3 to 8 logical progression tabs (e.g., Create Engineering, Digital Tech, Storage & Logistics, World & Performance).
+4. For EACH tab, generate a 4 to 8 step tutorial advancement progression tree!
 ${SCHEMA_PROMPT}
 `;
 
@@ -68,7 +69,7 @@ ${modListText}
 Task:
 1. Identify all distinct gameplay, tech, magic, adventure, storage, and utility mods listed.
 2. Group the mods into 3 to 8 logical progression tabs.
-3. For each tab, generate a detailed 5 to 10 step sequential tutorial advancement path with short 1-2 word titles!
+3. For each tab, generate a detailed 4 to 8 step sequential tutorial advancement path with short 1-2 word titles!
 ${SCHEMA_PROMPT}
 `;
 
@@ -91,11 +92,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const userApiKey = req.headers['x-api-key'] || 
+    const rawApiKey = req.headers['x-api-key'] || 
                        process.env.GEMINI_API_KEY || 
                        process.env.VITE_GEMINI_API_KEY || 
                        process.env.GOOGLE_API_KEY || 
                        process.env.GEMINI_KEY;
+
+    const userApiKey = rawApiKey ? rawApiKey.trim().replace(/^["']|["']$/g, '') : null;
 
     let body = req.body || {};
     if (typeof body === 'string') {
@@ -110,10 +113,9 @@ export default async function handler(req, res) {
 
     let geminiErrorMsg = null;
 
-    if (userApiKey && userApiKey.trim() !== '') {
+    if (userApiKey && userApiKey !== '') {
       try {
-        const ai = new GoogleGenAI({ apiKey: userApiKey.trim() });
-        // Use production-tested Gemini models
+        const ai = new GoogleGenAI({ apiKey: userApiKey });
         const modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
         let response = null;
         let lastErr = null;
@@ -159,7 +161,7 @@ export default async function handler(req, res) {
         console.warn('Gemini API call failed in Vercel function:', geminiError.message);
       }
     } else {
-      geminiErrorMsg = "No GEMINI_API_KEY environment variable set on server";
+      geminiErrorMsg = "GEMINI_API_KEY not found in Vercel environment variables.";
     }
 
     // Comprehensive Fallback Mod Analyzer
@@ -168,7 +170,7 @@ export default async function handler(req, res) {
       success: true, 
       data: fallbackData, 
       source: 'fallback',
-      warning: `AI API Offline (${geminiErrorMsg || 'Key missing'}). Showing analyzed modpack tree.` 
+      warning: `Gemini AI Error: ${geminiErrorMsg || 'API Key offline'}. Showing analyzed modpack tree.` 
     });
 
   } catch (error) {
@@ -191,7 +193,8 @@ function generateFallbackAdvancements(rawText = '') {
     parsedModNames = [
       "Create", "Create Connected", "Create Crafts & Additions", 
       "Create Diesel Generators", "Create Nuclear", "Create Ore Excavation", 
-      "Industrial Foregoing", "Applied Energistics 2", "Sophisticated Backpacks"
+      "Industrial Foregoing", "Applied Energistics 2", "Sophisticated Backpacks",
+      "Sodium", "Iris Shaders", "Simple Quarries"
     ];
   }
 
@@ -205,9 +208,7 @@ function generateFallbackAdvancements(rawText = '') {
     description: `Analyzed modpack entry: ${modName}`
   }));
 
-  const createMods = recognizedMods.filter(m => m.name.toLowerCase().includes("create"));
   const techMods = recognizedMods.filter(m => !m.name.toLowerCase().includes("create") && (m.name.toLowerCase().includes("industrial") || m.name.toLowerCase().includes("applied") || m.name.toLowerCase().includes("quarry")));
-  const utilMods = recognizedMods.filter(m => m.name.toLowerCase().includes("sophisticated") || m.name.toLowerCase().includes("jei") || m.name.toLowerCase().includes("sodium") || m.name.toLowerCase().includes("iris"));
 
   const tabs = [];
   const advancements = [];

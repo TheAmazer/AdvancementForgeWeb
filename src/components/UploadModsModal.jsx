@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Upload, Sparkles, AlertCircle, Loader2, Image as ImageIcon, FileText } from 'lucide-react';
+import { X, Upload, Sparkles, AlertCircle, Loader2, Image as ImageIcon, FileText, Key } from 'lucide-react';
 import { soundEngine } from '../utils/audio';
 
 export default function UploadModsModal({ onClose, onApplyGeneratedAdvancements }) {
@@ -7,9 +7,11 @@ export default function UploadModsModal({ onClose, onApplyGeneratedAdvancements 
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [modListText, setModListText] = useState('');
+  const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState('');
   const [error, setError] = useState(null);
+  const [warningMsg, setWarningMsg] = useState(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -18,6 +20,7 @@ export default function UploadModsModal({ onClose, onApplyGeneratedAdvancements 
       const url = URL.createObjectURL(selectedFile);
       setPreviewUrl(url);
       setError(null);
+      setWarningMsg(null);
     }
   };
 
@@ -29,6 +32,7 @@ export default function UploadModsModal({ onClose, onApplyGeneratedAdvancements 
       const url = URL.createObjectURL(droppedFile);
       setPreviewUrl(url);
       setError(null);
+      setWarningMsg(null);
     }
   };
 
@@ -59,6 +63,7 @@ export default function UploadModsModal({ onClose, onApplyGeneratedAdvancements 
 
     setIsLoading(true);
     setError(null);
+    setWarningMsg(null);
     setLoadingStep('Reading input data...');
     soundEngine.playClick();
 
@@ -85,9 +90,14 @@ export default function UploadModsModal({ onClose, onApplyGeneratedAdvancements 
 
       setLoadingStep('Gemini Vision AI is analyzing mods & constructing progression tree...');
 
+      const headers = { 'Content-Type': 'application/json' };
+      if (apiKey.trim()) {
+        headers['x-api-key'] = apiKey.trim();
+      }
+
       const response = await fetch('/api/analyze-mods', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
         body: JSON.stringify(payload)
       });
 
@@ -97,9 +107,15 @@ export default function UploadModsModal({ onClose, onApplyGeneratedAdvancements 
         throw new Error(result.error || 'Failed to analyze mods list.');
       }
 
+      if (result.warning) {
+        setWarningMsg(result.warning);
+      }
+
       soundEngine.playAdvancement();
       onApplyGeneratedAdvancements(result.data);
-      onClose();
+      if (!result.warning) {
+        onClose();
+      }
     } catch (err) {
       console.error(err);
       setError(err.message || 'Error communicating with AI server.');
@@ -129,14 +145,14 @@ export default function UploadModsModal({ onClose, onApplyGeneratedAdvancements 
         <div className="input-mode-tabs">
           <button 
             className={`mode-tab-btn ${activeTab === 'image' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('image'); setError(null); }}
+            onClick={() => { setActiveTab('image'); setError(null); setWarningMsg(null); }}
             disabled={isLoading}
           >
             <ImageIcon size={16} /> 📷 Screenshot Upload
           </button>
           <button 
             className={`mode-tab-btn ${activeTab === 'text' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('text'); setError(null); }}
+            onClick={() => { setActiveTab('text'); setError(null); setWarningMsg(null); }}
             disabled={isLoading}
           >
             <FileText size={16} /> 📝 Mod List Text Input
@@ -149,6 +165,13 @@ export default function UploadModsModal({ onClose, onApplyGeneratedAdvancements 
             <div className="error-banner">
               <AlertCircle size={16} />
               <span>{error}</span>
+            </div>
+          )}
+
+          {warningMsg && (
+            <div className="error-banner" style={{ background: '#7e5109', borderColor: '#f39c12' }}>
+              <AlertCircle size={16} color="#ffff55" />
+              <span>{warningMsg}</span>
             </div>
           )}
 
@@ -209,6 +232,21 @@ export default function UploadModsModal({ onClose, onApplyGeneratedAdvancements 
             </div>
           )}
 
+          {/* Optional Gemini API Key Box */}
+          <div className="api-key-box">
+            <label className="input-label">
+              <Key size={14} /> <span>Optional Custom Gemini API Key (Bypasses Vercel env key if empty):</span>
+            </label>
+            <input
+              type="password"
+              className="mc-input-text"
+              placeholder="AIzaSy... (Paste key if server key is not configured)"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              disabled={isLoading}
+            />
+          </div>
+
           {isLoading && (
             <div className="ai-loading-status">
               <Loader2 size={24} className="spinning-icon" color="#55ff55" />
@@ -220,7 +258,7 @@ export default function UploadModsModal({ onClose, onApplyGeneratedAdvancements 
         {/* Footer */}
         <div className="mc-modal-footer">
           <button className="mc-btn" onClick={onClose} disabled={isLoading}>
-            Cancel
+            Close
           </button>
           <button
             className="mc-btn primary-action-btn"
