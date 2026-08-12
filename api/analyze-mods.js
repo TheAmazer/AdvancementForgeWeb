@@ -36,7 +36,7 @@ Return ONLY a valid JSON object matching this exact schema:
       "modName": "string",
       "tagline": "string",
       "description": "string",
-      "guide": ["step 1", "step 2", "step 3"],
+      "guide": ["step 1", "step 2"],
       "reward": "string"
     }
   ]
@@ -48,16 +48,12 @@ You are an expert Minecraft Modpack AI Architect.
 Analyze the provided screenshot of a Minecraft mods folder directory.
 
 CRITICAL INSTRUCTIONS FOR ADVANCEMENT TREES:
-1. Read EVERY file name visible in the screenshot (e.g. Create, Create Connected, Create Crafts & Additions, Create Diesel Generators, Create Nuclear, Create Ore Excavation, Industrial Foregoing, Applied Energistics 2, Sophisticated Storage, Quarries, etc.).
-2. Group the recognized mods into 4 to 8 distinct progression tabs (e.g., "Create Mechanics", "Kinetic Power & Diesel", "Nuclear & Excavation", "Applied Energistics 2", "Industrial Foregoing", "Storage & Logistics").
-3. For EACH tab, generate a LARGE, SPRAWLING, BRANCHING advancement tree with 10 to 18 advancements per tab!
-4. DO NOT make a single straight line of nodes! Create multiple parallel branches:
-   - Root starter node at x=0, y=0.
-   - Main line at y=0 (x=1..6).
-   - Top branch splitting at y=-1 or y=-2 (x=1..6).
-   - Bottom branch splitting at y=1 or y=2 (x=1..6).
-5. Ensure x coordinates increase sequentially (0, 1, 2, 3, 4, 5, 6...) and parents connect logically.
-6. Keep titles VERY SHORT (format: '1. ShortTitle' - MAX 2 WORDS after step number) so text never overlaps!
+1. Read file names visible in the screenshot (e.g. Create, Create Connected, Create Crafts & Additions, Create Diesel Generators, Create Nuclear, Create Ore Excavation, Industrial Foregoing, Applied Energistics 2, Sophisticated Storage, Quarries, etc.).
+2. Group recognized mods into 4 to 6 distinct progression tabs.
+3. For EACH tab, generate a BRANCHING advancement tree with 6 to 10 advancements per tab!
+4. Branch across multiple rows (y = -1, 0, 1) and columns (x = 0, 1, 2, 3, 4, 5).
+5. Keep titles VERY SHORT (e.g., '1. Prospecting', '2. Pressing', '3. Refining') so text never overlaps.
+6. Keep descriptions and guides concise so the JSON response finishes cleanly!
 
 ${SCHEMA_PROMPT}
 `;
@@ -71,19 +67,58 @@ ${modListText}
 --- END MOD LIST ---
 
 CRITICAL INSTRUCTIONS FOR ADVANCEMENT TREES:
-1. Identify all distinct gameplay, tech, magic, adventure, storage, and utility mods listed.
-2. Group the recognized mods into 4 to 8 distinct progression tabs.
-3. For EACH tab, generate a LARGE, SPRAWLING, BRANCHING advancement tree with 10 to 18 advancements per tab!
-4. DO NOT make a single straight line of nodes! Create multiple parallel branches:
-   - Root starter node at x=0, y=0.
-   - Main line at y=0 (x=1..6).
-   - Top branch splitting at y=-1 or y=-2 (x=1..6).
-   - Bottom branch splitting at y=1 or y=2 (x=1..6).
-5. Ensure x coordinates increase sequentially (0, 1, 2, 3, 4, 5, 6...) and parents connect logically.
-6. Keep titles VERY SHORT (format: '1. ShortTitle' - MAX 2 WORDS after step number) so text never overlaps!
+1. Group recognized mods into 4 to 6 distinct progression tabs.
+2. For EACH tab, generate a BRANCHING advancement tree with 6 to 10 advancements per tab!
+3. Branch across multiple rows (y = -1, 0, 1) and columns (x = 0, 1, 2, 3, 4, 5).
+4. Keep titles VERY SHORT (e.g., '1. Prospecting', '2. Pressing', '3. Refining') so text never overlaps.
+5. Keep descriptions and guides concise so the JSON response finishes cleanly!
 
 ${SCHEMA_PROMPT}
 `;
+
+function repairJson(jsonString) {
+  let cleaned = jsonString.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    console.warn("Primary JSON parse failed, attempting auto-repair...", e.message);
+  }
+
+  // Truncation repair helper
+  let openBrackets = 0;
+  let openBraces = 0;
+  let inString = false;
+
+  for (let i = 0; i < cleaned.length; i++) {
+    const char = cleaned[i];
+    if (char === '"' && cleaned[i - 1] !== '\\') {
+      inString = !inString;
+    } else if (!inString) {
+      if (char === '[') openBrackets++;
+      else if (char === ']') openBrackets--;
+      else if (char === '{') openBraces++;
+      else if (char === '}') openBraces--;
+    }
+  }
+
+  if (inString) {
+    cleaned += '"';
+  }
+
+  cleaned = cleaned.replace(/,\s*$/, '').replace(/,\s*([}\]])/g, '$1');
+
+  while (openBrackets > 0) {
+    cleaned += ']';
+    openBrackets--;
+  }
+  while (openBraces > 0) {
+    cleaned += '}';
+    openBraces--;
+  }
+
+  return JSON.parse(cleaned);
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -170,8 +205,7 @@ export default async function handler(req, res) {
 
           if (apiRes.ok && resData.candidates && resData.candidates[0]?.content?.parts[0]?.text) {
             let jsonString = resData.candidates[0].content.parts[0].text;
-            jsonString = jsonString.replace(/```json/gi, '').replace(/```/g, '').trim();
-            const parsed = JSON.parse(jsonString);
+            const parsed = repairJson(jsonString);
             return res.status(200).json({ success: true, data: parsed, source: 'ai' });
           } else {
             const errDetail = resData.error ? resData.error.message : `HTTP ${apiRes.status}`;
