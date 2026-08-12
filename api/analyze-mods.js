@@ -41,18 +41,24 @@ Return ONLY a valid JSON object matching this exact schema:
     }
   ]
 }
-IMPORTANT: Keep advancement titles VERY SHORT (e.g., '1. Prospecting', '2. Pumpjack', '3. Refining') so they fit cleanly without text overlap!
-Ensure x coordinates increase from 0 to N left-to-right to form a clear tutorial path.
 `;
 
 const VISION_PROMPT = `
 You are an expert Minecraft Modpack AI Architect.
 Analyze the provided screenshot of a Minecraft mods folder directory.
-Task:
-1. Read all file names in the screenshot (e.g. appliedenergistics2, create, create_connected, createaddition, createdieselgenerators, createnuclear, createoreexcavation, industrialforegoing, sophisticatedbackpacks, sodium, jei, etc.).
-2. List ALL recognized mods.
-3. Group them into 3 to 8 logical progression tabs (e.g., Create Engineering, Digital Tech, Storage & Logistics, World & Performance).
-4. For EACH tab, generate a 4 to 8 step tutorial advancement progression tree!
+
+CRITICAL INSTRUCTIONS FOR ADVANCEMENT TREES:
+1. Read EVERY file name visible in the screenshot (e.g. Create, Create Connected, Create Crafts & Additions, Create Diesel Generators, Create Nuclear, Create Ore Excavation, Industrial Foregoing, Applied Energistics 2, Sophisticated Storage, Quarries, etc.).
+2. Group the recognized mods into 4 to 8 distinct progression tabs (e.g., "Create Mechanics", "Kinetic Power & Diesel", "Nuclear & Excavation", "Applied Energistics 2", "Industrial Foregoing", "Storage & Logistics").
+3. For EACH tab, generate a LARGE, SPRAWLING, BRANCHING advancement tree with 10 to 18 advancements per tab!
+4. DO NOT make a single straight line of nodes! Create multiple parallel branches:
+   - Root starter node at x=0, y=0.
+   - Main line at y=0 (x=1..6).
+   - Top branch splitting at y=-1 or y=-2 (x=1..6).
+   - Bottom branch splitting at y=1 or y=2 (x=1..6).
+5. Ensure x coordinates increase sequentially (0, 1, 2, 3, 4, 5, 6...) and parents connect logically.
+6. Keep titles VERY SHORT (format: '1. ShortTitle' - MAX 2 WORDS after step number) so text never overlaps!
+
 ${SCHEMA_PROMPT}
 `;
 
@@ -64,10 +70,18 @@ The user provided the following text list of installed Minecraft mods / jar file
 ${modListText}
 --- END MOD LIST ---
 
-Task:
+CRITICAL INSTRUCTIONS FOR ADVANCEMENT TREES:
 1. Identify all distinct gameplay, tech, magic, adventure, storage, and utility mods listed.
-2. Group the mods into 3 to 8 logical progression tabs.
-3. For each tab, generate a detailed 4 to 8 step sequential tutorial advancement path with short 1-2 word titles!
+2. Group the recognized mods into 4 to 8 distinct progression tabs.
+3. For EACH tab, generate a LARGE, SPRAWLING, BRANCHING advancement tree with 10 to 18 advancements per tab!
+4. DO NOT make a single straight line of nodes! Create multiple parallel branches:
+   - Root starter node at x=0, y=0.
+   - Main line at y=0 (x=1..6).
+   - Top branch splitting at y=-1 or y=-2 (x=1..6).
+   - Bottom branch splitting at y=1 or y=2 (x=1..6).
+5. Ensure x coordinates increase sequentially (0, 1, 2, 3, 4, 5, 6...) and parents connect logically.
+6. Keep titles VERY SHORT (format: '1. ShortTitle' - MAX 2 WORDS after step number) so text never overlaps!
+
 ${SCHEMA_PROMPT}
 `;
 
@@ -112,7 +126,6 @@ export default async function handler(req, res) {
     let geminiErrorMsg = null;
 
     if (userApiKey && userApiKey !== '') {
-      // Model sequence including gemini-flash-latest as requested
       const modelsToTry = [
         'gemini-flash-latest',
         'gemini-1.5-flash-latest',
@@ -120,7 +133,7 @@ export default async function handler(req, res) {
         'gemini-1.5-flash',
         'gemini-1.5-pro-latest'
       ];
-      
+
       const promptText = imageBase64 ? VISION_PROMPT : TEXT_PROMPT_TEMPLATE(modListText);
       const cleanBase64 = imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, '').trim() : null;
 
@@ -141,7 +154,9 @@ export default async function handler(req, res) {
           const geminiReqBody = {
             contents: [{ parts }],
             generationConfig: {
-              responseMimeType: "application/json"
+              responseMimeType: "application/json",
+              maxOutputTokens: 8192,
+              temperature: 0.2
             }
           };
 
