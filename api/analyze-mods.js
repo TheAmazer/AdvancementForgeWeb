@@ -6,11 +6,9 @@ Return ONLY a valid JSON object matching this exact schema:
     {
       "id": "string",
       "name": "string",
-      "version": "string",
       "filename": "string",
       "color": "hex color",
-      "icon": "emoji",
-      "description": "string"
+      "icon": "emoji"
     }
   ],
   "tabs": [
@@ -26,7 +24,7 @@ Return ONLY a valid JSON object matching this exact schema:
     {
       "id": "string",
       "tab": "tab_id",
-      "title": "string (format: '1. ShortTitle' - MAX 2 WORDS after step number!)",
+      "title": "string (format: '1. ShortTitle' - MAX 2 WORDS!)",
       "frame": "task|goal|challenge",
       "icon": "emoji",
       "x": number,
@@ -35,8 +33,8 @@ Return ONLY a valid JSON object matching this exact schema:
       "mod": "mod_id",
       "modName": "string",
       "tagline": "string",
-      "description": "string",
-      "guide": ["step 1", "step 2"],
+      "description": "string (MAX 10 WORDS)",
+      "guide": ["bullet 1", "bullet 2"],
       "reward": "string"
     }
   ]
@@ -47,13 +45,12 @@ const VISION_PROMPT = `
 You are an expert Minecraft Modpack AI Architect.
 Analyze the provided screenshot of a Minecraft mods folder directory.
 
-CRITICAL INSTRUCTIONS FOR ADVANCEMENT TREES:
+CRITICAL RULES:
 1. Read file names visible in the screenshot (e.g. Create, Create Connected, Create Crafts & Additions, Create Diesel Generators, Create Nuclear, Create Ore Excavation, Industrial Foregoing, Applied Energistics 2, Sophisticated Storage, Quarries, etc.).
 2. Group recognized mods into 4 to 6 distinct progression tabs.
 3. For EACH tab, generate a BRANCHING advancement tree with 6 to 10 advancements per tab!
 4. Branch across multiple rows (y = -1, 0, 1) and columns (x = 0, 1, 2, 3, 4, 5).
-5. Keep titles VERY SHORT (e.g., '1. Prospecting', '2. Pressing', '3. Refining') so text never overlaps.
-6. Keep descriptions and guides concise so the JSON response finishes cleanly!
+5. Keep titles VERY SHORT (format: '1. ShortTitle' - MAX 2 WORDS) and descriptions under 10 words so the JSON response remains compact!
 
 ${SCHEMA_PROMPT}
 `;
@@ -66,12 +63,11 @@ The user provided the following text list of installed Minecraft mods / jar file
 ${modListText}
 --- END MOD LIST ---
 
-CRITICAL INSTRUCTIONS FOR ADVANCEMENT TREES:
+CRITICAL RULES:
 1. Group recognized mods into 4 to 6 distinct progression tabs.
 2. For EACH tab, generate a BRANCHING advancement tree with 6 to 10 advancements per tab!
 3. Branch across multiple rows (y = -1, 0, 1) and columns (x = 0, 1, 2, 3, 4, 5).
-4. Keep titles VERY SHORT (e.g., '1. Prospecting', '2. Pressing', '3. Refining') so text never overlaps.
-5. Keep descriptions and guides concise so the JSON response finishes cleanly!
+4. Keep titles VERY SHORT (format: '1. ShortTitle' - MAX 2 WORDS) and descriptions under 10 words so the JSON response remains compact!
 
 ${SCHEMA_PROMPT}
 `;
@@ -79,45 +75,41 @@ ${SCHEMA_PROMPT}
 function repairJson(jsonString) {
   let cleaned = jsonString.replace(/```json/gi, '').replace(/```/g, '').trim();
 
+  // Try direct parse
   try {
     return JSON.parse(cleaned);
   } catch (e) {
-    console.warn("Primary JSON parse failed, attempting auto-repair...", e.message);
+    console.warn("Primary JSON parse failed, running robust truncation recovery...", e.message);
   }
 
-  // Truncation repair helper
-  let openBrackets = 0;
-  let openBraces = 0;
-  let inString = false;
+  // Truncation Recovery: Clip at last completely closed object '}'
+  const lastClosedObjIdx = cleaned.lastIndexOf('}');
+  if (lastClosedObjIdx !== -1) {
+    let truncatedChunk = cleaned.substring(0, lastClosedObjIdx + 1);
 
-  for (let i = 0; i < cleaned.length; i++) {
-    const char = cleaned[i];
-    if (char === '"' && cleaned[i - 1] !== '\\') {
-      inString = !inString;
-    } else if (!inString) {
-      if (char === '[') openBrackets++;
-      else if (char === ']') openBrackets--;
-      else if (char === '{') openBraces++;
-      else if (char === '}') openBraces--;
+    // Balance open brackets and braces
+    let openBrackets = (truncatedChunk.match(/\[/g) || []).length - (truncatedChunk.match(/\]/g) || []).length;
+    let openBraces = (truncatedChunk.match(/\{/g) || []).length - (truncatedChunk.match(/\}/g) || []).length;
+
+    truncatedChunk = truncatedChunk.replace(/,\s*$/, '');
+
+    while (openBrackets > 0) {
+      truncatedChunk += ']';
+      openBrackets--;
+    }
+    while (openBraces > 0) {
+      truncatedChunk += '}';
+      openBraces--;
+    }
+
+    try {
+      return JSON.parse(truncatedChunk);
+    } catch (e2) {
+      console.warn("Secondary recovery failed:", e2.message);
     }
   }
 
-  if (inString) {
-    cleaned += '"';
-  }
-
-  cleaned = cleaned.replace(/,\s*$/, '').replace(/,\s*([}\]])/g, '$1');
-
-  while (openBrackets > 0) {
-    cleaned += ']';
-    openBrackets--;
-  }
-  while (openBraces > 0) {
-    cleaned += '}';
-    openBraces--;
-  }
-
-  return JSON.parse(cleaned);
+  throw new Error("Unable to parse truncated JSON structure.");
 }
 
 export default async function handler(req, res) {
@@ -165,8 +157,7 @@ export default async function handler(req, res) {
         'gemini-flash-latest',
         'gemini-1.5-flash-latest',
         'gemini-2.5-flash',
-        'gemini-1.5-flash',
-        'gemini-1.5-pro-latest'
+        'gemini-1.5-flash'
       ];
 
       const promptText = imageBase64 ? VISION_PROMPT : TEXT_PROMPT_TEMPLATE(modListText);
@@ -191,7 +182,7 @@ export default async function handler(req, res) {
             generationConfig: {
               responseMimeType: "application/json",
               maxOutputTokens: 8192,
-              temperature: 0.2
+              temperature: 0.1
             }
           };
 
