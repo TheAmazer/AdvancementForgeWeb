@@ -1,6 +1,6 @@
 # 🏗️ Architecture & System Design
 
-This document details the system architecture of the **Minecraft Advancement Generator & Interactive Web GUI**.
+This document details the system architecture of the **Minecraft Advancement Generator & Interactive Web GUI** (`AdvancementForgeWeb`).
 
 ---
 
@@ -8,7 +8,7 @@ This document details the system architecture of the **Minecraft Advancement Gen
 
 The system consists of a dual-tier architecture:
 1. **Frontend Client (Vite + React 19)**: Renders an interactive 2D canvas, handles smooth panning/zooming, enforces linear prerequisite progression, synthesizes retro Web Audio sound effects, and renders crisp SVG pixel art item icons.
-2. **Backend API Server (Express + Google GenAI)**: Receives mod folder screenshots or text lists and generates dynamic advancement JSON trees via Gemini Vision/Text LLM models.
+2. **Backend AI Engine (Express + Vercel Serverless Functions)**: Receives mod folder screenshots or text lists and generates dynamic advancement JSON trees via Google Gemini 3.6 Flash LLM models.
 
 ```
 +---------------------------------------------------------------------------------+
@@ -22,13 +22,13 @@ The system consists of a dual-tier architecture:
 |             |             | (Retro Chimes)       |  | (Saved Trees)          |  |
 |             |             +----------------------+  +------------------------+  |
 +-------------|-------------------------------------------------------------------+
-              | HTTP POST /api/analyze-mods
+              | HTTP POST /api/analyze-mods (Base64 / JSON)
               v
 +---------------------------------------------------------------------------------+
-|                     Express Backend Server (Node)                               |
+|                    Express Backend Server / Vercel Serverless                   |
 |  +---------------------+  +----------------------+  +------------------------+  |
-|  | Multer Upload       |  | GenAI SDK Agent      |  | Fallback AI            |  |
-|  | (Memory Buffer)     |  | (Gemini Vision)      |  | (Text Parser)          |  |
+|  | JSON Body Parser    |  | Gemini 3.6 Flash     |  | repairJson Recovery    |  |
+|  | (50MB Payload Limit)|  | (System Architect)   |  | (String-Aware Parser)  |  |
 |  +---------------------+  +----------------------+  +------------------------+  |
 +---------------------------------------------------------------------------------+
 ```
@@ -69,12 +69,12 @@ The system consists of a dual-tier architecture:
 
 ---
 
-## 🔌 Backend AI Agent (`server.js`)
+## 🔌 Backend AI Engine (`server.js` & `api/analyze-mods.js`)
 
 * **Endpoint**: `POST /api/analyze-mods`
-* **Model**: Google Gemini 2.5 Flash (`gemini-2.5-flash`)
-* **Vision Processing Pipeline**:
-  1. Image buffers uploaded via Multer are converted to Base64 inline data.
-  2. Prompts instruct Gemini to perform OCR, recognize `.jar` filenames, extract mod names and versions, group mods by game mechanics, and construct parent-child tree nodes with short 1-2 word titles.
-  3. Structured JSON output mode (`responseMimeType: 'application/json'`) guarantees schema compliance.
-  4. If no API key is provided, the server invokes `generateFallbackAdvancements()`, ensuring 100% system availability.
+* **Model Pipeline**: Primary `gemini-3.6-flash` (with fallback to `gemini-3.5-flash` across `v1beta` and `v1` REST endpoints).
+* **Payload Architecture**: Direct base64 JSON payload supporting up to 50MB request sizes.
+* **Truncation Recovery (`repairJson`)**:
+  1. String-aware tokenizer tracks escaped quotes `"`, open brackets `[`, and open braces `{`.
+  2. If an AI response truncates mid-stream, the parser safely clips at the last complete object boundary `}`, balances trailing brackets `]` and braces `}`, and returns valid JSON.
+* **33-Mod Directory Fallback**: If no API key is provided, the backend falls back to an offline directory analyzer supporting 33+ recognized Minecraft mods.

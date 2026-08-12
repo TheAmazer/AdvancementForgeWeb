@@ -1,4 +1,4 @@
-# 🤝 Contributing to Minecraft Advancement Generator
+# 🤝 Contributing to Minecraft Advancement Generator (`AdvancementForgeWeb`)
 
 Thank you for your interest in contributing! Whether you are adding support for new Minecraft mods, creating pre-set advancement trees, adding pixel item icons, improving the AI agent prompts, or polishing the pixel UI, this guide will help you get started.
 
@@ -15,7 +15,7 @@ Thank you for your interest in contributing! Whether you are adding support for 
    ```bash
    npm run dev
    ```
-4. Verify tests and build stability before submitting PRs:
+4. Verify build stability before submitting PRs:
    ```bash
    npm run build
    ```
@@ -24,27 +24,50 @@ Thank you for your interest in contributing! Whether you are adding support for 
 
 ## 📜 Advancement Node Schema Specification
 
-When adding pre-set advancement nodes to `src/data/advancements.js` or customizing AI outputs in `server.js`, adhere strictly to this JSON schema:
+When adding pre-set advancement nodes to `src/data/advancements.js` or customizing AI outputs in `server.js` / `api/analyze-mods.js`, adhere strictly to this JSON schema:
 
 ```json
 {
-  "id": "unique_string_id",
-  "tab": "tab_id",
-  "title": "1. Short Title (1-2 Words Max)",
-  "frame": "task|goal|challenge",
-  "icon": "item_key_or_emoji",
-  "x": 0,
-  "y": 0,
-  "parent": "parent_node_id or null",
-  "mod": "mod_id",
-  "modName": "Display Mod Name",
-  "tagline": "Brief 1-line summary",
-  "description": "Full objective description",
-  "guide": [
-    "• Step 1: Detailed crafting or placement instruction.",
-    "• Step 2: Power and fluid piping instructions."
+  "modpackTitle": "string",
+  "recognizedMods": [
+    {
+      "id": "string",
+      "name": "Display Mod Name",
+      "filename": "full-jar-filename.jar",
+      "color": "#hexcolor",
+      "icon": "emoji"
+    }
   ],
-  "reward": "Item or XP unlock reward"
+  "tabs": [
+    {
+      "id": "tab_id",
+      "title": "Tab Title",
+      "icon": "emoji",
+      "mod": "Main Mod Name",
+      "bg": "stone|cobble|darkstone|deepslate|coal|bedrock"
+    }
+  ],
+  "advancements": [
+    {
+      "id": "unique_string_id",
+      "tab": "tab_id",
+      "title": "1. Short Title (MAX 2 WORDS)",
+      "frame": "task|goal|challenge",
+      "icon": "emoji",
+      "x": 0,
+      "y": 0,
+      "parent": "parent_node_id or null",
+      "mod": "mod_id",
+      "modName": "Display Mod Name",
+      "tagline": "Brief 1-line summary",
+      "description": "Full objective description (MAX 8 WORDS)",
+      "guide": [
+        "• Step 1: Crafting or placement instruction.",
+        "• Step 2: Power and piping instructions."
+      ],
+      "reward": "Item or XP reward"
+    }
+  ]
 }
 ```
 
@@ -59,6 +82,14 @@ When adding pre-set advancement nodes to `src/data/advancements.js` or customizi
   * Nodes sit at column $x_{\text{child}} = x_{\text{parent}} + 1$ to guarantee clean, non-overlapping orthogonal lines.
 * **Pixel Item Icon Mapping**:
   * Add custom SVG pixel art sprites in `src/components/MinecraftIcon.jsx`.
+
+---
+
+## 🤖 AI Prompting & Truncation Recovery (`server.js` & `api/analyze-mods.js`)
+
+* **Target Model**: `gemini-3.6-flash` (via Google AI Studio REST API).
+* **System Role Prompt**: The system prompt uses explicit `# SYSTEM ROLE & CONTEXT` and `# CORE TASK` framing to enforce line-by-line visual inspection of mod folder screenshots.
+* **Truncation Recovery**: If modifying AI outputs, ensure your changes work with the `repairJson` tokenizer in `server.js`. `repairJson` tracks string boundaries and closing braces (`}`) to safely reconstruct valid JSON if Gemini output truncates.
 
 ---
 

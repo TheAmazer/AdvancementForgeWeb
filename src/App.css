@@ -693,6 +693,69 @@
   border-color: #e74c3c #641e16 #641e16 #e74c3c !important;
 }
 
+/* Installed Mods Cards Grid */
+.mods-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mod-card {
+  background: #111116;
+  border: 2px solid #373737;
+  border-radius: 4px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mod-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mod-icon-wrapper {
+  background: #252530;
+  border: 2px solid;
+  padding: 6px;
+  border-radius: 4px;
+}
+
+.mod-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mod-name-title {
+  font-family: var(--mc-pixel-font);
+  font-size: 13px;
+  color: #ffffff;
+}
+
+.mod-filename-code {
+  font-family: monospace;
+  font-size: 12px;
+  color: #55ffff;
+  background: #000000;
+  padding: 1px 6px;
+  border-radius: 2px;
+  border: 1px solid #333344;
+  width: fit-content;
+}
+
+.mod-category-tag {
+  font-size: 11px;
+  color: #ffaa00;
+}
+
+.mod-desc {
+  font-size: 12px;
+  color: #888888;
+}
+
 /* Upload Dropzone */
 .mc-dropzone {
   border: 3px dashed #555555;
