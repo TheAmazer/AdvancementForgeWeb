@@ -57,11 +57,18 @@ You are an expert Minecraft Modpack Developer, Progression Designer, and Compute
 
 ---
 
-# MANDATORY QUANTITY REQUIREMENTS
-- Create MINIMUM 5 tabs and up to 8 tabs. Each major mod or mod group gets its own tab.
-- Each tab MUST have MINIMUM 8 advancements, ideally 10. No tab should have fewer than 8.
-- Branch advancements across multiple rows (y=-1, 0, 1) and columns (x=0, 1, 2, 3, 4, 5).
-- You MUST generate at least 40 total advancements across all tabs. Target 50-60.
+# MANDATORY OUTPUT REQUIREMENTS
+- You MUST create a SEPARATE tab for each of these mod categories (if mods from that category were detected):
+  Tab 1: "Create Core" — for Create base mod (kinetic power, mechanical processing)
+  Tab 2: "Create Addons" — for Create Diesel, Nuclear, Ore Excavation, Dragons, Enchantment Industry, Stuff & Additions
+  Tab 3: "Applied Energistics" — for AE2 digital storage and autocrafting
+  Tab 4: "Industrial Tech" — for Industrial Foregoing, Titanium
+  Tab 5: "Storage & Inventory" — for Sophisticated Storage, Sophisticated Backpacks, Inventory Management
+  Tab 6: "Mining & Quarries" — for Simple Quarries, Coal Quarry, Quarry Digger, FTB Ultimine
+  Tab 7: "Utilities & Tools" — for JEI, Xaero WorldMap, Effortless Building, performance mods
+- Each tab MUST have EXACTLY 8-10 advancements. No fewer than 8. This is non-negotiable.
+- Branch advancements across rows (y=-1, 0, 1) and columns (x=0..5).
+- Total advancements MUST be 50+ across all tabs.
 - Keep titles SHORT (MAX 2 words). Keep descriptions SHORT (MAX 8 words).
 
 ---
@@ -84,11 +91,18 @@ ${modListText}
 
 ---
 
-# MANDATORY QUANTITY REQUIREMENTS
-- Create MINIMUM 5 tabs and up to 8 tabs. Each major mod or mod group gets its own tab.
-- Each tab MUST have MINIMUM 8 advancements, ideally 10. No tab should have fewer than 8.
-- Branch advancements across multiple rows (y=-1, 0, 1) and columns (x=0, 1, 2, 3, 4, 5).
-- You MUST generate at least 40 total advancements across all tabs. Target 50-60.
+# MANDATORY OUTPUT REQUIREMENTS
+- You MUST create a SEPARATE tab for each of these mod categories (if mods from that category were detected):
+  Tab 1: "Create Core" — for Create base mod (kinetic power, mechanical processing)
+  Tab 2: "Create Addons" — for Create Diesel, Nuclear, Ore Excavation, Dragons, Enchantment Industry, Stuff & Additions
+  Tab 3: "Applied Energistics" — for AE2 digital storage and autocrafting
+  Tab 4: "Industrial Tech" — for Industrial Foregoing, Titanium
+  Tab 5: "Storage & Inventory" — for Sophisticated Storage, Sophisticated Backpacks, Inventory Management
+  Tab 6: "Mining & Quarries" — for Simple Quarries, Coal Quarry, Quarry Digger, FTB Ultimine
+  Tab 7: "Utilities & Tools" — for JEI, Xaero WorldMap, Effortless Building, performance mods
+- Each tab MUST have EXACTLY 8-10 advancements. No fewer than 8. This is non-negotiable.
+- Branch advancements across rows (y=-1, 0, 1) and columns (x=0..5).
+- Total advancements MUST be 50+ across all tabs.
 - Keep titles SHORT (MAX 2 words). Keep descriptions SHORT (MAX 8 words).
 
 ---
