@@ -77,41 +77,77 @@ ${modListText}
 
 ${SCHEMA_PROMPT}`;
 
-function repairJson(jsonString) {
-  let cleaned = jsonString.replace(/```json/gi, '').replace(/```/g, '').trim();
+function repairJson(raw) {
+  let s = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
 
-  try {
-    return JSON.parse(cleaned);
-  } catch (e) {
-    console.warn("Primary JSON parse failed, running truncation recovery...", e.message);
+  // 1. Direct parse
+  try { return JSON.parse(s); } catch (e) {
+    console.warn("Direct parse failed:", e.message);
   }
 
-  const lastClosedObjIdx = cleaned.lastIndexOf('}');
-  if (lastClosedObjIdx !== -1) {
-    let truncatedChunk = cleaned.substring(0, lastClosedObjIdx + 1);
+  // 2. Find the outermost { ... } pair
+  const firstBrace = s.indexOf('{');
+  if (firstBrace === -1) throw new Error("No JSON object found in response");
+  s = s.substring(firstBrace);
 
-    let openBrackets = (truncatedChunk.match(/\[/g) || []).length - (truncatedChunk.match(/\]/g) || []).length;
-    let openBraces = (truncatedChunk.match(/\{/g) || []).length - (truncatedChunk.match(/\}/g) || []).length;
+  // Try again after extracting from first brace
+  try { return JSON.parse(s); } catch (e) {
+    console.warn("After brace extraction, parse failed:", e.message);
+  }
 
-    truncatedChunk = truncatedChunk.replace(/,\s*$/, '');
+  // 3. String-aware truncation recovery
+  let lastGoodPos = -1;
+  let braceDepth = 0;
+  let inStr = false;
+  let escaped = false;
 
-    while (openBrackets > 0) {
-      truncatedChunk += ']';
-      openBrackets--;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (escaped) { escaped = false; continue; }
+    if (ch === '\\') { escaped = true; continue; }
+    if (ch === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (ch === '{') braceDepth++;
+    if (ch === '}') {
+      braceDepth--;
+      if (braceDepth >= 0) lastGoodPos = i;
     }
-    while (openBraces > 0) {
-      truncatedChunk += '}';
-      openBraces--;
+  }
+
+  if (lastGoodPos > 0) {
+    let repaired = s.substring(0, lastGoodPos + 1);
+    repaired = repaired.replace(/,\s*$/, '');
+
+    // Count remaining open brackets/braces
+    let ob = 0, oc = 0;
+    inStr = false;
+    escaped = false;
+    for (let i = 0; i < repaired.length; i++) {
+      const ch = repaired[i];
+      if (escaped) { escaped = false; continue; }
+      if (ch === '\\') { escaped = true; continue; }
+      if (ch === '"') { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (ch === '[') ob++;
+      if (ch === ']') ob--;
+      if (ch === '{') oc++;
+      if (ch === '}') oc--;
     }
+
+    repaired = repaired.replace(/,\s*$/, '');
+    while (ob > 0) { repaired += ']'; ob--; }
+    while (oc > 0) { repaired += '}'; oc--; }
 
     try {
-      return JSON.parse(truncatedChunk);
-    } catch (e2) {
-      console.warn("Secondary recovery failed:", e2.message);
+      const result = JSON.parse(repaired);
+      console.log("✅ JSON repair successful");
+      return result;
+    } catch (e3) {
+      console.warn("Repair attempt failed:", e3.message);
     }
   }
 
-  throw new Error("Unable to parse truncated JSON structure.");
+  throw new Error("Unable to repair truncated JSON");
 }
 
 export default async function handler(req, res) {
@@ -180,8 +216,8 @@ export default async function handler(req, res) {
           const geminiReqBody = {
             contents: [{ parts }],
             generationConfig: {
-              responseMimeType: "application/json",
-              maxOutputTokens: 8192,
+              responseMimeType: "text/plain",
+              maxOutputTokens: 65536,
               temperature: 0.1
             }
           };
