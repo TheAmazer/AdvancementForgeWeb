@@ -53,7 +53,16 @@ You are an expert Minecraft Modpack Developer, Progression Designer, and Compute
 
 # CORE TASK
 1. Exhaustive Mod Detection (Step 1): Analyze the input image line-by-line and identify EVERY SINGLE .jar file visible. You must populate the recognizedMods array with every single detected mod (utility mods, performance mods, libraries, core mods, and content mods).
-2. Progression Tree Synthesis (Step 2): Group all detected content and system mods into logical, step-by-step tutorial advancement tabs that guide players on what to build or automate next. Generate 6-10 advancements per tab, branching across y=-1,0,1 and x=0..5.
+2. Progression Tree Synthesis (Step 2): Group all detected content and system mods into logical, step-by-step tutorial advancement tabs that guide players on what to build or automate next.
+
+---
+
+# MANDATORY QUANTITY REQUIREMENTS
+- Create MINIMUM 5 tabs and up to 8 tabs. Each major mod or mod group gets its own tab.
+- Each tab MUST have MINIMUM 8 advancements, ideally 10. No tab should have fewer than 8.
+- Branch advancements across multiple rows (y=-1, 0, 1) and columns (x=0, 1, 2, 3, 4, 5).
+- You MUST generate at least 40 total advancements across all tabs. Target 50-60.
+- Keep titles SHORT (MAX 2 words). Keep descriptions SHORT (MAX 8 words).
 
 ---
 
@@ -71,7 +80,16 @@ ${modListText}
 
 # CORE TASK
 1. Exhaustive Mod Parsing (Step 1): Process the list above and populate recognizedMods with every single entry.
-2. Progression Tree Synthesis (Step 2): Group detected mods into logical tutorial advancement tabs (6-10 advancements per tab, branching across y=-1,0,1 and x=0..5).
+2. Progression Tree Synthesis (Step 2): Group detected mods into logical tutorial advancement tabs.
+
+---
+
+# MANDATORY QUANTITY REQUIREMENTS
+- Create MINIMUM 5 tabs and up to 8 tabs. Each major mod or mod group gets its own tab.
+- Each tab MUST have MINIMUM 8 advancements, ideally 10. No tab should have fewer than 8.
+- Branch advancements across multiple rows (y=-1, 0, 1) and columns (x=0, 1, 2, 3, 4, 5).
+- You MUST generate at least 40 total advancements across all tabs. Target 50-60.
+- Keep titles SHORT (MAX 2 words). Keep descriptions SHORT (MAX 8 words).
 
 ---
 
